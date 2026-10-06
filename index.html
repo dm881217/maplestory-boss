@@ -1,1 +1,349 @@
+我已經幫你在「女皇」的後面加上「森蘭丸」了！
+請將 Boss.html 的內容完全替換為以下最新版本：
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>楓星每週打王進度表 & 班表自動避開時段</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 10px;
+        }
+        h1 { text-align: center; color: #444; margin-bottom: 5px; font-size: 1.5em; }
+        .reset-info { text-align: center; font-size: 0.9em; color: #d84315; font-weight: bold; margin-bottom: 20px; }
+        
+        .monthly-settings {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 20px auto;
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        details summary { font-size: 1.1em; font-weight: bold; color: #1565C0; cursor: pointer; padding: 5px 0; }
+        .month-controls { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; }
+        .month-controls button { padding: 5px 10px; font-size: 0.9em; cursor: pointer; border-radius: 6px; border: 1px solid #ccc; background: #f0f0f0; }
+        .month-controls h3 { margin: 0; font-size: 1.1em; }
+        
+        .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+        .month-grid-header { font-weight: bold; padding: 5px 0; background: #f4f4f9; border-radius: 4px; font-size: 0.9em; }
+        .month-cell { border: 1px solid #eee; border-radius: 6px; padding: 3px; min-height: 45px; display: flex; flex-direction: column; gap: 2px; background: #fafafa; }
+        .month-cell.empty { background: transparent; border: none; }
+        .month-cell span { font-size: 0.8em; color: #666; font-weight: bold; }
+        .month-cell input { width: 100%; text-align: center; padding: 2px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; font-size: 0.85em; text-transform: uppercase;}
+        .month-cell input:focus { outline: none; border-color: #888; }
+
+        .calendars-wrapper { display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto 30px auto; width: 100%; }
+        .calendar-container { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .calendar-container h2 { margin-top: 0; text-align: center; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.2em; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .day-column { background: #fafafa; border: 1px solid #ddd; border-radius: 8px; min-height: 120px; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+        .day-title { text-align: center; font-weight: bold; padding-bottom: 3px; margin-bottom: 2px; color: #555; font-size: 0.95em; }
+        .shift-badge { text-align: center; font-size: 0.9em; font-weight: bold; padding: 3px; border-radius: 4px; background: #fff; border: 1px dashed #ccc; }
+        
+        .busy-times { text-align: center; font-size: 0.75em; color: #d32f2f; font-weight: bold; margin-bottom: 2px; }
+
+        .this-week-title { color: #1565C0; }
+        .next-week-title { color: #2E7D32; }
+
+        .events-container { display: flex; flex-direction: column; gap: 6px; margin-top: 5px; }
+        .event-card { font-size: 0.85em; padding: 6px; border-radius: 6px; font-weight: bold; display: flex; flex-direction: column; box-shadow: 0 2px 4px rgba(0,0,0,0.05); word-wrap: break-word; }
+        .event-card .event-note { font-size: 0.8em; font-weight: normal; color: #444; margin-top: 3px; }
+        .event-evan { background-color: #E3F2FD; border-left: 4px solid #1E88E5; color: #0D47A1; }
+        .event-bmage { background-color: #F3E5F5; border-left: 4px solid #8E24AA; color: #4A148C; }
+        .event-completed { opacity: 0.4; text-decoration: line-through; filter: grayscale(100%); }
+
+        .container { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .character-card { flex: 1; width: 100%; border-radius: 12px; padding: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .evan { background-color: #E3F2FD; border: 2px solid #90CAF9; }
+        .bmage { background-color: #F3E5F5; border: 2px solid #CE93D8; }
+        .character-card h2 { text-align: center; margin-top: 0; padding-bottom: 10px; border-bottom: 2px dashed rgba(0,0,0,0.2); font-size: 1.2em;}
+        .list-container { display: flex; flex-direction: column; }
+        
+        .boss-item { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 10px; padding: 8px; background: rgba(255, 255, 255, 0.6); border-radius: 6px; gap: 6px; }
+        .boss-item input[type="checkbox"] { transform: scale(1.3); margin: 0 5px; cursor: pointer; }
+        .boss-name { font-size: 1em; font-weight: bold; width: 80px; flex-shrink: 0; }
+        .completed { opacity: 0.5; }
+        .completed .boss-name { text-decoration: line-through; color: #888; }
+        .day-select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-family: inherit; flex: 1; min-width: 110px;}
+        .time-input { flex: 1 1 100%; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; min-width: 120px; }
+        optgroup { font-weight: bold; }
+
+        @media (max-width: 768px) {
+            .calendar-grid { grid-template-columns: 1fr; }
+            .day-column { min-height: auto; }
+            .character-card { padding: 10px; }
+            .time-input { flex-basis: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>⚔️ 楓星打王進度表 & 班表 ⚔️</h1>
+    <div class="reset-info">💡 自動帶入上班應避開時段(含大夜班)。週四凌晨自動重置。</div>
+
+    <div class="monthly-settings">
+        <details>
+            <summary>📅 點此展開填寫【整月班表】</summary>
+            <div class="month-controls">
+                <button onclick="changeMonth(-1)">◀</button>
+                <h3 id="month-label">2026年 10月</h3>
+                <button onclick="changeMonth(1)">▶</button>
+            </div>
+            <div class="month-grid" id="month-grid"></div>
+        </details>
+    </div>
+
+    <div class="calendars-wrapper">
+        <div class="calendar-container">
+            <h2 class="this-week-title">📅 本週行程 (This Week)</h2>
+            <div class="calendar-grid" id="this-week-grid"></div>
+        </div>
+        <div class="calendar-container">
+            <h2 class="next-week-title">📅 下週行程 (Next Week)</h2>
+            <div class="calendar-grid" id="next-week-grid"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="character-card evan"><h2 style="color: #1565C0;">🐉 龍魔導士</h2><div id="evan-list" class="list-container"></div></div>
+        <div class="character-card bmage"><h2 style="color: #6A1B9A;">💀 煉獄巫師</h2><div id="bmage-list" class="list-container"></div></div>
+    </div>
+
+    <script>
+        const bosses = ["普炎", "混炎", "普龍", "混龍", "凡雷恩", "阿卡", "皮卡", "女皇", "森蘭丸", "舊東京", "拉圖斯", "攝像頭", "杜納斯一階", "杜納斯二階", "戰艦", "首腦", "無名魔獸", "奧芙赫班", "天皇", "黑道", "小筱"];
+        const chars = [{ id: 'evan', name: '🐉 龍魔' }, { id: 'bmage', name: '💀 煉獄' }];
+        const daysOrder = [4, 5, 6, 0, 1, 2, 3]; 
+        const dayNames = { 0:"日", 1:"一", 2:"二", 3:"三", 4:"四", 5:"五", 6:"六" };
+
+        let viewYear = new Date().getFullYear();
+        let viewMonth = new Date().getMonth(); 
+        
+        const now = new Date();
+        let lastThursday = new Date();
+        lastThursday.setDate(now.getDate() - ((now.getDay() + 3) % 7)); 
+        lastThursday.setHours(0, 0, 0, 0);
+
+        function getDateStr(dateObj) {
+            return `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;
+        }
+        
+        function getAbsoluteDateObj(isNextWeek, dayIndex) {
+            let dayOffset = dayIndex - 4;
+            if (dayOffset < 0) dayOffset += 7;
+            if (isNextWeek) dayOffset += 7;
+            const d = new Date(lastThursday);
+            d.setDate(d.getDate() + dayOffset);
+            return d;
+        }
+
+        function getShiftInfo(val) {
+            val = val.trim().toUpperCase();
+            if (val === '休' || val.includes('休') || val === 'OFF') return { bg: '#e8f5e9', border: '#A5D6A7', text: '休假', busy: '' };
+            
+            let busyStr = '';
+            // 根據最新修正的值班與一備時段 (已合併重疊區間)
+            if (val === 'A') busyStr = '避開 08-10, 12-14, 22-06';
+            else if (val === 'B') busyStr = '避開 08-12, 16-18, 22-08';
+            else if (val === 'C') busyStr = '避開 06-08, 14-20';
+            else if (val === 'D') busyStr = '避開 12-14, 18-22';
+            else if (val === 'E') busyStr = '避開 14-18, 20-22';
+            else if (val === 'H') busyStr = '避開 08-12, 18-20, 22-08';
+            else if (val === 'K') busyStr = '避開 10-16, 20-22';
+            else if (val === 'L') busyStr = '不需避開 (無值班/一備)';
+
+            if (/^[A-Z0-9]+$/.test(val) || val.includes('班') || val !== '') {
+                return { bg: '#ffebee', border: '#ef9a9a', text: `上班: ${val}`, busy: busyStr };
+            }
+            return { bg: '#fafafa', border: '#ddd', text: '未排班', busy: '' };
+        }
+
+        function renderMonthGrid() {
+            document.getElementById('month-label').innerText = `${viewYear}年 ${viewMonth + 1}月`;
+            const grid = document.getElementById('month-grid');
+            grid.innerHTML = ['日','一','二','三','四','五','六'].map(d => `<div class="month-grid-header">${d}</div>`).join('');
+            
+            const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+            const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+            
+            for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="month-cell empty"></div>`;
+            
+            for(let d=1; d<=daysInMonth; d++) {
+                const dateStr = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const savedShift = localStorage.getItem(`shift_abs_${dateStr}`) || '';
+                const info = getShiftInfo(savedShift);
+                
+                grid.innerHTML += `
+                    <div class="month-cell" style="background:${info.bg}; border-color:${info.border}">
+                        <span>${d}日</span>
+                        <input type="text" data-date="${dateStr}" value="${savedShift}" placeholder="班/休">
+                    </div>`;
+            }
+
+            document.querySelectorAll('.month-cell input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const date = e.target.dataset.date;
+                    localStorage.setItem(`shift_abs_${date}`, e.target.value.toUpperCase());
+                    const info = getShiftInfo(e.target.value);
+                    e.target.parentElement.style.background = info.bg;
+                    e.target.parentElement.style.borderColor = info.border;
+                    renderBiWeeklyCalendar(); 
+                });
+            });
+        }
+
+        function changeMonth(delta) {
+            viewMonth += delta;
+            if(viewMonth < 0) { viewMonth = 11; viewYear--; }
+            else if(viewMonth > 11) { viewMonth = 0; viewYear++; }
+            renderMonthGrid();
+        }
+
+        function renderBiWeeklyCalendar() {
+            const thisGrid = document.getElementById('this-week-grid');
+            const nextGrid = document.getElementById('next-week-grid');
+            thisGrid.innerHTML = ''; nextGrid.innerHTML = '';
+            
+            daysOrder.forEach(day => {
+                const dThis = getAbsoluteDateObj(false, day);
+                const strThis = getDateStr(dThis);
+                const valThis = localStorage.getItem(`shift_abs_${strThis}`) || '';
+                const cThis = getShiftInfo(valThis);
+                
+                thisGrid.innerHTML += `
+                    <div class="day-column" id="cal-this-${day}" style="background:${cThis.bg}; border-color:${cThis.border}">
+                        <div class="day-title">${dThis.getMonth()+1}/${dThis.getDate()} (週${dayNames[day]})</div>
+                        <div class="shift-badge">${cThis.text}</div>
+                        ${cThis.busy ? `<div class="busy-times">${cThis.busy}</div>` : ''}
+                        <div class="events-container"></div>
+                    </div>`;
+                    
+                const dNext = getAbsoluteDateObj(true, day);
+                const strNext = getDateStr(dNext);
+                const valNext = localStorage.getItem(`shift_abs_${strNext}`) || '';
+                const cNext = getShiftInfo(valNext);
+                
+                nextGrid.innerHTML += `
+                    <div class="day-column" id="cal-next-${day}" style="background:${cNext.bg}; border-color:${cNext.border}">
+                        <div class="day-title">${dNext.getMonth()+1}/${dNext.getDate()} (週${dayNames[day]})</div>
+                        <div class="shift-badge">${cNext.text}</div>
+                        ${cNext.busy ? `<div class="busy-times">${cNext.busy}</div>` : ''}
+                        <div class="events-container"></div>
+                    </div>`;
+            });
+            renderEvents(); 
+        }
+
+        function renderEvents() {
+            document.querySelectorAll('.events-container').forEach(el => el.innerHTML = '');
+            chars.forEach(char => {
+                bosses.forEach(boss => {
+                    const dayVal = localStorage.getItem(`${char.id}_day_${boss}`);
+                    const isChecked = localStorage.getItem(`${char.id}_check_${boss}`) === 'true';
+                    const note = localStorage.getItem(`${char.id}_note_${boss}`) || '';
+                    if (dayVal && dayVal !== "none") {
+                        const isNextWeek = dayVal.startsWith('next-');
+                        const showCompleted = isChecked && !isNextWeek; 
+                        const eventDiv = document.createElement('div');
+                        eventDiv.className = `event-card event-${char.id} ${showCompleted ? 'event-completed' : ''}`;
+                        let innerHTML = `<span>${char.name} - ${boss}</span>`;
+                        if (note) innerHTML += `<span class="event-note">${note}</span>`;
+                        eventDiv.innerHTML = innerHTML;
+                        const targetContainer = document.querySelector(`#cal-${dayVal} .events-container`);
+                        if(targetContainer) targetContainer.appendChild(eventDiv);
+                    }
+                });
+            });
+        }
+
+        function checkWeeklyReset() {
+            const savedResetTime = localStorage.getItem('last_reset_time');
+            if (!savedResetTime || new Date(parseInt(savedResetTime)) < lastThursday) {
+                bosses.forEach(boss => {
+                    chars.forEach(char => {
+                        localStorage.removeItem(`${char.id}_check_${boss}`);
+                        const savedDay = localStorage.getItem(`${char.id}_day_${boss}`);
+                        if (savedDay && savedDay.startsWith('next-')) {
+                            localStorage.setItem(`${char.id}_day_${boss}`, savedDay.replace('next-', 'this-'));
+                        }
+                    });
+                });
+                localStorage.setItem('last_reset_time', lastThursday.getTime());
+            }
+        }
+
+        function sortList(containerId) {
+            const container = document.getElementById(containerId);
+            const items = Array.from(container.children);
+            items.sort((a, b) => {
+                const aChk = a.querySelector('input[type="checkbox"]').checked;
+                const bChk = b.querySelector('input[type="checkbox"]').checked;
+                return aChk === bChk ? parseInt(a.dataset.index) - parseInt(b.dataset.index) : (aChk ? 1 : -1);
+            });
+            items.forEach(item => container.appendChild(item));
+        }
+
+        function generateOptions(savedVal) {
+            let html = `<option value="none" ${savedVal === 'none' ? 'selected' : ''}>- 選擇日期 -</option><optgroup label="📅 本週">`;
+            daysOrder.forEach(day => {
+                const date = getAbsoluteDateObj(false, day);
+                html += `<option value="this-${day}" ${savedVal === `this-${day}` ? 'selected' : ''}>本週${dayNames[day]} (${date.getMonth()+1}/${date.getDate()})</option>`;
+            });
+            html += `</optgroup><optgroup label="⏭️ 下週">`;
+            daysOrder.forEach(day => {
+                const date = getAbsoluteDateObj(true, day);
+                html += `<option value="next-${day}" ${savedVal === `next-${day}` ? 'selected' : ''}>下週${dayNames[day]} (${date.getMonth()+1}/${date.getDate()})</option>`;
+            });
+            return html + `</optgroup>`;
+        }
+
+        function createList(charId, containerId) {
+            const container = document.getElementById(containerId);
+            bosses.forEach((boss, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'boss-item';
+                itemDiv.dataset.index = index;
+                const isChecked = localStorage.getItem(`${charId}_check_${boss}`) === 'true';
+                if (isChecked) itemDiv.classList.add('completed');
+
+                itemDiv.innerHTML = `
+                    <input type="checkbox" id="${charId}_${boss}" ${isChecked ? 'checked' : ''}>
+                    <label class="boss-name" for="${charId}_${boss}">${boss}</label>
+                    <select class="day-select">${generateOptions(localStorage.getItem(`${charId}_day_${boss}`) || 'none')}</select>
+                    <input type="text" class="time-input" placeholder="備註時間(如20:00)" value="${localStorage.getItem(`${charId}_note_${boss}`) || ''}">
+                `;
+
+                itemDiv.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
+                    itemDiv.classList.toggle('completed', e.target.checked);
+                    localStorage.setItem(`${charId}_check_${boss}`, e.target.checked);
+                    sortList(containerId); renderEvents();
+                });
+                itemDiv.querySelector('.day-select').addEventListener('change', (e) => {
+                    localStorage.setItem(`${charId}_day_${boss}`, e.target.value); renderEvents();
+                });
+                itemDiv.querySelector('input[type="text"]').addEventListener('input', (e) => {
+                    localStorage.setItem(`${charId}_note_${boss}`, e.target.value); renderEvents();
+                });
+                container.appendChild(itemDiv);
+            });
+            sortList(containerId);
+        }
+
+        checkWeeklyReset();
+        renderMonthGrid();
+        renderBiWeeklyCalendar();
+        createList('evan', 'evan-list');
+        createList('bmage', 'bmage-list');
+    </script>
+</body>
+</html>
+
 
