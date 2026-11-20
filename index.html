@@ -127,7 +127,7 @@
     </div>
 
     <script>
-        const bosses = ["普炎", "混炎", "普龍", "混龍", "凡雷恩", "阿卡", "皮卡", "女皇", "森蘭丸", "舊東京", "拉圖斯", "攝像頭", "杜納斯一階", "杜納斯二階", "戰艦", "首腦", "無名魔獸", "奧芙赫班", "天皇", "黑道", "小筱"];
+        const bosses = ["普炎", "混炎", "普龍", "混龍", "凡雷恩", "阿卡", "皮卡", "女皇", "森蘭丸", "舊東京", "拉圖斯", "攝像頭", "杜納斯一階", "杜納斯二階", "戰艦", "首腦", "無名魔獸", "奧芙赫班", "天皇", "黑道", "小筱", "蝴蝶王", "樹王", "幽靈船"];
         const chars = [{ id: 'evan', name: '🐉 龍魔' }, { id: 'bmage', name: '💀 煉獄' }];
         const daysOrder = [4, 5, 6, 0, 1, 2, 3]; 
         const dayNames = { 0:"日", 1:"一", 2:"二", 3:"三", 4:"四", 5:"五", 6:"六" };
@@ -155,7 +155,6 @@
 
         function getShiftInfo(val) {
             val = val.trim().toUpperCase();
-            // 空白或輸入「休」預設為綠色放假
             if (val === '' || val === '休' || val.includes('休') || val === 'OFF') {
                 return { bg: '#e8f5e9', border: '#A5D6A7', text: '🟢 休假', busy: '' };
             }
@@ -170,7 +169,6 @@
             else if (val === 'K') busyStr = '避開 10-16, 20-22';
             else if (val === 'L') busyStr = '無值班/一備 (全天可約)';
 
-            // 只要有填入代號，一律顯示淺紅底色 + 紅色避開提示
             return { bg: '#ffebee', border: '#ef9a9a', text: `🔴 上班: ${val}`, busy: busyStr };
         }
 
