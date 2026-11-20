@@ -53,10 +53,23 @@
             font-size: 0.78em; 
             color: #d32f2f; 
             font-weight: bold; 
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.75);
             padding: 3px 4px;
             border-radius: 4px;
             margin-bottom: 2px; 
+        }
+
+        /* 休息時間：藍綠色標示 */
+        .rest-times {
+            text-align: center;
+            font-size: 0.78em;
+            color: #00695C;
+            font-weight: bold;
+            background: rgba(224, 242, 241, 0.9);
+            border: 1px solid #80CBC4;
+            padding: 3px 4px;
+            border-radius: 4px;
+            margin-bottom: 2px;
         }
 
         .this-week-title { color: #1565C0; }
@@ -96,7 +109,7 @@
 <body>
 
     <h1>⚔️ 楓星打王進度表 & 班表 ⚔️</h1>
-    <div class="reset-info">💡 空白預設為「放假(綠)」，只需填寫上班代號(紅)即可顯示避開時段。</div>
+    <div class="reset-info">💡 空白預設為「放假(綠)」，上班代號(紅)顯示避開時段與休息時間。</div>
 
     <div class="monthly-settings">
         <details>
@@ -156,20 +169,21 @@
         function getShiftInfo(val) {
             val = val.trim().toUpperCase();
             if (val === '' || val === '休' || val.includes('休') || val === 'OFF') {
-                return { bg: '#e8f5e9', border: '#A5D6A7', text: '🟢 休假', busy: '' };
+                return { bg: '#e8f5e9', border: '#A5D6A7', text: '🟢 休假', busy: '', rest: '' };
             }
             
             let busyStr = '';
-            if (val === 'A') busyStr = '避開 08-10, 12-14, 22-06';
-            else if (val === 'B') busyStr = '避開 08-12, 16-18, 22-08';
-            else if (val === 'C') busyStr = '避開 06-08, 14-20';
-            else if (val === 'D') busyStr = '避開 12-14, 18-22';
-            else if (val === 'E') busyStr = '避開 14-18, 20-22';
-            else if (val === 'H') busyStr = '避開 08-12, 18-20, 22-08';
-            else if (val === 'K') busyStr = '避開 10-16, 20-22';
-            else if (val === 'L') busyStr = '無值班/一備 (全天可約)';
+            let restStr = '';
+            if (val === 'A') { busyStr = '避開 08-10, 12-14, 22-06'; restStr = '休息 06-08'; }
+            else if (val === 'B') { busyStr = '避開 08-12, 16-18, 22-08'; restStr = '休息 20-22'; }
+            else if (val === 'C') { busyStr = '避開 06-08, 14-20'; restStr = '休息 22-24'; }
+            else if (val === 'D') { busyStr = '避開 12-14, 18-22'; restStr = '休息 08-10'; }
+            else if (val === 'E') { busyStr = '避開 14-18, 20-22'; restStr = '休息 20-22'; }
+            else if (val === 'H') { busyStr = '避開 08-12, 18-20, 22-08'; restStr = '休息 12-14'; }
+            else if (val === 'K') { busyStr = '避開 10-16, 20-22'; restStr = '休息 18-20'; }
+            else if (val === 'L') { busyStr = '無值班/一備 (全天可約)'; restStr = '休息 14-16'; }
 
-            return { bg: '#ffebee', border: '#ef9a9a', text: `🔴 上班: ${val}`, busy: busyStr };
+            return { bg: '#ffebee', border: '#ef9a9a', text: `🔴 上班: ${val}`, busy: busyStr, rest: restStr };
         }
 
         function renderMonthGrid() {
@@ -229,6 +243,7 @@
                         <div class="day-title">${dThis.getMonth()+1}/${dThis.getDate()} (週${dayNames[day]})</div>
                         <div class="shift-badge">${cThis.text}</div>
                         ${cThis.busy ? `<div class="busy-times">${cThis.busy}</div>` : ''}
+                        ${cThis.rest ? `<div class="rest-times">${cThis.rest}</div>` : ''}
                         <div class="events-container"></div>
                     </div>`;
                     
@@ -242,6 +257,7 @@
                         <div class="day-title">${dNext.getMonth()+1}/${dNext.getDate()} (週${dayNames[day]})</div>
                         <div class="shift-badge">${cNext.text}</div>
                         ${cNext.busy ? `<div class="busy-times">${cNext.busy}</div>` : ''}
+                        ${cNext.rest ? `<div class="rest-times">${cNext.rest}</div>` : ''}
                         <div class="events-container"></div>
                     </div>`;
             });
