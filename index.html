@@ -169,7 +169,7 @@
         function getShiftInfo(val) {
             val = val.trim().toUpperCase();
             if (val === '' || val === '休' || val.includes('休') || val === 'OFF') {
-                return { bg: '#e8f5e9', border: '#A5D6A7', text: '🟢 休假', busy: '', rest: '' };
+                return { bg: '#e8f5e9', border: '#A5D6A7', text: '休假', busy: '', rest: '' };
             }
             
             let busyStr = '';
@@ -183,7 +183,7 @@
             else if (val === 'K') { busyStr = '避開 10-16, 20-22'; restStr = '休息 18-20'; }
             else if (val === 'L') { busyStr = '無值班/一備 (全天可約)'; restStr = '休息 14-16'; }
 
-            return { bg: '#ffebee', border: '#ef9a9a', text: `🔴 上班: ${val}`, busy: busyStr, rest: restStr };
+            return { bg: '#ffebee', border: '#ef9a9a', text: `上班: ${val}`, busy: busyStr, rest: restStr };
         }
 
         function renderMonthGrid() {
