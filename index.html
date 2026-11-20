@@ -33,21 +33,31 @@
         
         .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
         .month-grid-header { font-weight: bold; padding: 5px 0; background: #f4f4f9; border-radius: 4px; font-size: 0.9em; }
-        .month-cell { border: 1px solid #eee; border-radius: 6px; padding: 3px; min-height: 45px; display: flex; flex-direction: column; gap: 2px; background: #fafafa; }
+        .month-cell { border: 1px solid #A5D6A7; border-radius: 6px; padding: 3px; min-height: 45px; display: flex; flex-direction: column; gap: 2px; background: #e8f5e9; transition: background 0.2s; }
         .month-cell.empty { background: transparent; border: none; }
-        .month-cell span { font-size: 0.8em; color: #666; font-weight: bold; }
-        .month-cell input { width: 100%; text-align: center; padding: 2px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; font-size: 0.85em; text-transform: uppercase;}
-        .month-cell input:focus { outline: none; border-color: #888; }
+        .month-cell span { font-size: 0.8em; color: #555; font-weight: bold; }
+        .month-cell input { width: 100%; text-align: center; padding: 2px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; font-size: 0.85em; text-transform: uppercase; background: rgba(255, 255, 255, 0.85); }
+        .month-cell input:focus { outline: none; border-color: #666; background: #fff; }
 
         .calendars-wrapper { display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto 30px auto; width: 100%; }
         .calendar-container { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .calendar-container h2 { margin-top: 0; text-align: center; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.2em; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-        .day-column { background: #fafafa; border: 1px solid #ddd; border-radius: 8px; min-height: 120px; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
-        .day-title { text-align: center; font-weight: bold; padding-bottom: 3px; margin-bottom: 2px; color: #555; font-size: 0.95em; }
-        .shift-badge { text-align: center; font-size: 0.9em; font-weight: bold; padding: 3px; border-radius: 4px; background: #fff; border: 1px dashed #ccc; }
+        .day-column { background: #e8f5e9; border: 1px solid #A5D6A7; border-radius: 8px; min-height: 120px; padding: 10px; display: flex; flex-direction: column; gap: 4px; transition: background 0.2s; }
+        .day-title { text-align: center; font-weight: bold; padding-bottom: 3px; margin-bottom: 2px; color: #444; font-size: 0.95em; }
+        .shift-badge { text-align: center; font-size: 0.9em; font-weight: bold; padding: 3px; border-radius: 4px; background: rgba(255, 255, 255, 0.8); border: 1px dashed #bbb; }
         
-        .busy-times { text-align: center; font-size: 0.75em; color: #d32f2f; font-weight: bold; margin-bottom: 2px; }
+        /* 避開時段：紅色醒目字體 */
+        .busy-times { 
+            text-align: center; 
+            font-size: 0.78em; 
+            color: #d32f2f; 
+            font-weight: bold; 
+            background: rgba(255, 255, 255, 0.7);
+            padding: 3px 4px;
+            border-radius: 4px;
+            margin-bottom: 2px; 
+        }
 
         .this-week-title { color: #1565C0; }
         .next-week-title { color: #2E7D32; }
@@ -86,14 +96,14 @@
 <body>
 
     <h1>⚔️ 楓星打王進度表 & 班表 ⚔️</h1>
-    <div class="reset-info">💡 自動帶入上班應避開時段(含大夜班)。週四凌晨自動重置。</div>
+    <div class="reset-info">💡 空白預設為「放假(綠)」，只需填寫上班代號(紅)即可顯示避開時段。</div>
 
     <div class="monthly-settings">
         <details>
-            <summary>📅 點此展開填寫【整月班表】</summary>
+            <summary>📅 點此展開填寫【整月班表】(只需填上班日代號)</summary>
             <div class="month-controls">
                 <button onclick="changeMonth(-1)">◀</button>
-                <h3 id="month-label">2026年 10月</h3>
+                <h3 id="month-label">2026年 11月</h3>
                 <button onclick="changeMonth(1)">▶</button>
             </div>
             <div class="month-grid" id="month-grid"></div>
@@ -145,10 +155,12 @@
 
         function getShiftInfo(val) {
             val = val.trim().toUpperCase();
-            if (val === '休' || val.includes('休') || val === 'OFF') return { bg: '#e8f5e9', border: '#A5D6A7', text: '休假', busy: '' };
+            // 空白或輸入「休」預設為綠色放假
+            if (val === '' || val === '休' || val.includes('休') || val === 'OFF') {
+                return { bg: '#e8f5e9', border: '#A5D6A7', text: '🟢 休假', busy: '' };
+            }
             
             let busyStr = '';
-            // 根據最新修正的值班與一備時段 (已合併重疊區間)
             if (val === 'A') busyStr = '避開 08-10, 12-14, 22-06';
             else if (val === 'B') busyStr = '避開 08-12, 16-18, 22-08';
             else if (val === 'C') busyStr = '避開 06-08, 14-20';
@@ -156,12 +168,10 @@
             else if (val === 'E') busyStr = '避開 14-18, 20-22';
             else if (val === 'H') busyStr = '避開 08-12, 18-20, 22-08';
             else if (val === 'K') busyStr = '避開 10-16, 20-22';
-            else if (val === 'L') busyStr = '不需避開 (無值班/一備)';
+            else if (val === 'L') busyStr = '無值班/一備 (全天可約)';
 
-            if (/^[A-Z0-9]+$/.test(val) || val.includes('班') || val !== '') {
-                return { bg: '#ffebee', border: '#ef9a9a', text: `上班: ${val}`, busy: busyStr };
-            }
-            return { bg: '#fafafa', border: '#ddd', text: '未排班', busy: '' };
+            // 只要有填入代號，一律顯示淺紅底色 + 紅色避開提示
+            return { bg: '#ffebee', border: '#ef9a9a', text: `🔴 上班: ${val}`, busy: busyStr };
         }
 
         function renderMonthGrid() {
@@ -182,7 +192,7 @@
                 grid.innerHTML += `
                     <div class="month-cell" style="background:${info.bg}; border-color:${info.border}">
                         <span>${d}日</span>
-                        <input type="text" data-date="${dateStr}" value="${savedShift}" placeholder="班/休">
+                        <input type="text" data-date="${dateStr}" value="${savedShift}" placeholder="休">
                     </div>`;
             }
 
